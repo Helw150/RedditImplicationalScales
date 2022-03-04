@@ -14,7 +14,7 @@ subreddits = [
     "Colts",
     "Texans",
     "AZCardinals",
-    "panther",
+    "panthers",
     "nyjets",
     "miamidolphins",
     "buccaneers",
@@ -26,7 +26,7 @@ subreddits = [
     "detroitlions",
     "falcons",
     "ravens",
-    "brown",
+    "browns",
     "KansasCityChiefs",
     "CHIBears",
     "minnesotavikings",
@@ -109,7 +109,16 @@ def scrapeComments(subreddit):
             break
         if first:
             keys = set([key for object in objects for key in object.keys()]).union(
-                set(["author_cakeday", "edited", "awarders", "retrieved_on"])
+                set(
+                    [
+                        "author_cakeday",
+                        "edited",
+                        "awarders",
+                        "retrieved_on",
+                        "media_metadata",
+                        "editable",
+                    ]
+                )
             )
             a_file = open(f"/data/wheld3/reddit_data/{subreddit}_comments.csv", "w")
             dict_writer = csv.DictWriter(a_file, keys)
