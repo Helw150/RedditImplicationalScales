@@ -31,7 +31,7 @@ subreddits = [
     "CHIBears",
     "minnesotavikings",
     "Seahawks",
-    "bengal",
+    "bengals",
     "steelers",
     "49er",
     "cowboys",
