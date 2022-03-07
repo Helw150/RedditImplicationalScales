@@ -33,7 +33,7 @@ subreddits = [
     "Seahawks",
     "bengals",
     "steelers",
-    "49er",
+    "49ers",
     "cowboys",
     "eagles",
     "GreenBayPackers",
