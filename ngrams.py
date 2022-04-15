@@ -61,6 +61,7 @@ draft_file = save_folder + "draft_picks.csv"
 all_players_file = save_folder + "all_players.json"
 team_file = save_folder + "teams.csv"
 game_file = save_folder + "games.csv"
+staff_file = save_folder + "management.txt"
 scrabble_file = save_folder + "scrabble.txt"
 subreddits = [
     "raiders",
@@ -145,16 +146,23 @@ def load_stop_lists():
             teams_set.update(team[index["full"]].lower().split(" "))
     with open(scrabble_file, "r") as f:
         scrabble = set(word.lower().strip() for word in f.readlines())
-    return (coaches, teams_set, players_set, scrabble)
+    staff = set()
+    with open(staff_file, "r") as f:
+        staff_names = f.readlines()
+        for name in staff_names:
+            name = name.strip()
+            staff.update(name.lower().split(" "))
+    return (coaches, teams_set, players_set, staff, scrabble)
 
 
-coaches, teams, players, scrabble = load_stop_lists()
+coaches, teams, players, staff, scrabble = load_stop_lists()
 invalid_words = (
     set(stopwords.words("english"))
     | set(["nbsp", ".", "!", ";", "&", ",", "|", "%", "*", ":", "#", "?", '"'])
     | coaches
     | players
     | teams
+    | staff
     | scrabble
 )
 invalid_words = set(
@@ -184,6 +192,8 @@ def getAllComments(subreddit):
                         in comment[index["body"]].lower()
                     ):
                         continue
+                    if "opt out of replies" in comment[index["body"]].lower():
+                        continue
                     commentText.append(comment[index["body"]])
             except KeyError:
                 pass  # No comments that day
@@ -206,6 +216,8 @@ def getFrequencyDistribution(comments, hideProgress=False, use_bigram=False):
         max_count = 0
         if not use_bigram:
             for word in word_tokenize(body):
+                if word.startswith("&"):
+                    continue
                 w = re.sub(r"[^\w\d]", "", word.lower(), flags=re.MULTILINE)
                 stem = wordnet_lemmatizer.lemmatize(w)
                 if (
@@ -313,7 +325,7 @@ if __name__ == "__main__":
         graphFilename = save_folder + sub + "_" + shifterator_file
         wordsFilename = save_folder + sub + "_" + unique_words
         comparisonJSD.get_shift_graph(
-            top_n=50,
+            top_n=10,
             title="Word shift for r/" + sub,
             system_names=["r/" + sub, "Main"],
             filename=graphFilename,
