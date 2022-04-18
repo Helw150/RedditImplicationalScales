@@ -158,7 +158,7 @@ def load_stop_lists():
 coaches, teams, players, staff, scrabble = load_stop_lists()
 invalid_words = (
     set(stopwords.words("english"))
-    | set(["nbsp", ".", "!", ";", "&", ",", "|", "%", "*", ":", "#", "?", '"'])
+    | set(["dont", "nbsp", ".", "!", ";", "&", ",", "|", "%", "*", ":", "#", "?", '"'])
     | coaches
     | players
     | teams
@@ -223,6 +223,10 @@ def getFrequencyDistribution(comments, hideProgress=False, use_bigram=False):
                 if (
                     stem in seen
                     or stem in invalid_words
+                    or (
+                        len(stem) > 0 and stem[-1] == "s" and stem[:-1] in invalid_words
+                    )
+                    or stem.isnumeric()
                     or len(stem) < 3
                     or stem.startswith("www")
                     or word.startswith("r/")
@@ -292,20 +296,26 @@ def saveUniqueWords(comparison, filename):
     sortedTerms = sorted(scoredTerms, key=lambda t: t[-1], reverse=False)[
         0:number_unique_words
     ]
-    print(sortedTerms)
-    sortedTerms = [term for term in sortedTerms if term[-1] < -0.001]
     with open(filename, "w") as f:
         for term in sortedTerms:
-            f.write("%s\n" % term[0])
+            f.write(str(term[0]) + "," + str(term[-1]) + "\n")
 
 
 if __name__ == "__main__":
     memory_limit()
     subs = subreddits
-    mainComments = getFrequencyDistribution(getAllComments("nfl"))
-    common = findCommonWordsInDistribution(mainComments)
-    sampleMinusCommon = removeCommonWordsFromDistributions(mainComments, common)
+    subs_plus = subreddits + ["nfl"]
     for sub in tqdm(subs, total=len(subs), desc="Processing subreddits"):
+        mainComments = getFrequencyDistribution(
+            [
+                comment
+                for sub_add in subs
+                if not sub_add == sub
+                for comment in getAllComments(sub_add)
+            ]
+        )
+        common = findCommonWordsInDistribution(mainComments)
+        sampleMinusCommon = removeCommonWordsFromDistributions(mainComments, common)
         # First get the base distributions
         subComments = getFrequencyDistribution(getAllComments(sub))
         subCommon = set()  # findCommonWordsInDistribution(subComments)

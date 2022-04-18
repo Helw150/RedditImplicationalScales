@@ -47,7 +47,7 @@ min_comments_per_sub = 1
 
 url = "https://api.pushshift.io/reddit/comment/search?&limit=1000&sort=desc&subreddit={}&before="
 
-startTime = datetime.utcnow()
+startTime = datetime.utcnow() - timedelta(days=180)
 startEpoch = int(startTime.timestamp())
 endTime = startTime - timedelta(days=lookback_days)
 endEpoch = int(endTime.timestamp())
@@ -124,6 +124,9 @@ def scrapeComments(subreddit):
             dict_writer = csv.DictWriter(a_file, keys)
             dict_writer.writeheader()
             first = False
+        objects = [
+            dict((k, v) for k, v in object.items() if k in keys) for object in objects
+        ]
         dict_writer.writerows(objects)
         object = objects[-1]
         count += len(objects)
