@@ -171,9 +171,11 @@ invalid_words = set(
 
 # Returns a list of all comment strings that aren't from users we're ignoring
 # WARNING: Could be quite large!
-def getAllComments(subreddit):
+def getAllComments(subreddit, feature_builder=False):
     files = glob(save_folder + "/" + subreddit + "*_comments.csv")
     commentText = []
+    if feature_builder:
+        author_occurence = {}
     for commentfile in tqdm(
         files, total=len(files), desc="Reading comments for " + subreddit
     ):
@@ -194,11 +196,23 @@ def getAllComments(subreddit):
                         continue
                     if "opt out of replies" in comment[index["body"]].lower():
                         continue
-                    commentText.append(comment[index["body"]])
+                    if feature_builder:
+                        if comment[index["author"]] in author_occurence:
+                            author_occurence[comment[index["author"]]] += 1
+                        else:
+                            author_occurence[comment[index["author"]]] = 1
+                        media = 1 if ("jpg" in comment[index["body"]] or "gif" in comment[index["body"]]) else 0
+                        reply = 0 if comment[index["parent_id"]].startswith("t3") else 1
+                        commentText.append((comment[index["body"]], comment[index["author"]], reply, media))
+                    else:
+                        commentText.append(comment[index["body"]])
             except KeyError:
                 pass  # No comments that day
     print(len(commentText))
     print(commentText[0])
+    if feature_builder:
+        print(index)
+        return (commentText, author_occurence)
     return commentText
 
 
